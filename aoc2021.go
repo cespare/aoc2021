@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"constraints"
 	"os"
 	"runtime/pprof"
 	"strconv"
@@ -228,7 +229,11 @@ func (s scanner) int64() int64 {
 	return n
 }
 
-func abs(n int64) int64 {
+type number interface {
+	constraints.Integer | constraints.Float
+}
+
+func abs[T number](n T) T {
 	if n < 0 {
 		return -n
 	}

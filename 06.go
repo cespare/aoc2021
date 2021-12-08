@@ -32,7 +32,7 @@ func problem6(ctx *problemContext) {
 	for i := 0; i < 256; i++ {
 		lf.step()
 	}
-	ctx.reportPart1(lf.count())
+	ctx.reportPart2(lf.count())
 }
 
 type lanternfish map[int]int64

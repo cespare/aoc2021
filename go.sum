@@ -1,0 +1,4 @@
+github.com/cespare/permute v1.1.0 h1:J2lodCrXLX1FFBWJMGgYSAvfgAKlUWVGJrpT9ot9jX8=
+github.com/cespare/permute v1.1.0/go.mod h1:9qF+91VB07WEoBFCoeiFa4pi7CtPPC1sVu7ihk05h0c=
+golang.org/x/exp v0.0.0-20211207001050-4f2595aad9e7 h1:8+tNCYevFo8rmzPdpdYIPSoKyiJtBzYwQt+yHF+dAm8=
+golang.org/x/exp v0.0.0-20211207001050-4f2595aad9e7/go.mod h1:b9TAUYHmRtqA6klRHApnXMnj+OyLce4yF5cZCUbk2ps=
