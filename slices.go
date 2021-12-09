@@ -11,3 +11,7 @@ import (
 func SliceSort[E constraints.Ordered](x []E) {
 	sort.Slice(x, func(i, j int) bool { return x[i] < x[j] })
 }
+
+func SortFunc[E any](x []E, less func(a, b E) bool) {
+	sort.Slice(x, func(i, j int) bool { return less(x[i], x[j]) })
+}
