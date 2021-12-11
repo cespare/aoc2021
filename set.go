@@ -48,6 +48,7 @@ func (s *Set[T]) Filter(keep func(T) bool) {
 
 func (s *Set[T]) Pop() T {
 	for k := range s.m {
+		delete(s.m, k)
 		return k
 	}
 	panic("Pop of empty set")
