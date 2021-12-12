@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // https://github.com/golang/go/discussions/47331
 
 type Set[T comparable] struct {
@@ -10,6 +12,10 @@ func SetOf[T comparable](v ...T) *Set[T] {
 	s := &Set[T]{m: make(map[T]struct{}, len(v))}
 	s.Add(v...)
 	return s
+}
+
+func (s *Set[T]) String() string {
+	return fmt.Sprint(s.m)
 }
 
 func (s *Set[T]) Len() int {
@@ -23,6 +29,10 @@ func (s *Set[T]) Add(v ...T) {
 	for _, vv := range v {
 		s.m[vv] = struct{}{}
 	}
+}
+
+func (s *Set[T]) Remove(v T) {
+	delete(s.m, v)
 }
 
 func (s *Set[T]) Contains(v T) bool {
