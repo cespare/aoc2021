@@ -15,3 +15,31 @@ func SliceSort[E constraints.Ordered](x []E) {
 func SortFunc[E any](x []E, less func(a, b E) bool) {
 	sort.Slice(x, func(i, j int) bool { return less(x[i], x[j]) })
 }
+
+// Extra slice stuff.
+
+func SliceMin[E constraints.Ordered](x []E) E {
+	if len(x) == 0 {
+		panic("SliceMin of 0 elements")
+	}
+	min := x[0]
+	for i := 1; i < len(x); i++ {
+		if x[i] < min {
+			min = x[i]
+		}
+	}
+	return min
+}
+
+func SliceMax[E constraints.Ordered](x []E) E {
+	if len(x) == 0 {
+		panic("SliceMax of 0 elements")
+	}
+	max := x[0]
+	for i := 1; i < len(x); i++ {
+		if x[i] > max {
+			max = x[i]
+		}
+	}
+	return max
+}
