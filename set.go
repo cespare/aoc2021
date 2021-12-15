@@ -56,12 +56,13 @@ func (s *Set[T]) Filter(keep func(T) bool) {
 	}
 }
 
-func (s *Set[T]) Pop() T {
+func (s *Set[T]) Pop() (T, bool) {
 	for k := range s.m {
 		delete(s.m, k)
-		return k
+		return k, true
 	}
-	panic("Pop of empty set")
+	var t T
+	return t, false
 }
 
 func SetUnion[T comparable](s0, s1 Set[T]) Set[T] {

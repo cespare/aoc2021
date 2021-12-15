@@ -66,8 +66,11 @@ func (o *octopuses) step() int {
 
 	for {
 		var next Set[vec2]
-		for frontier.Len() > 0 {
-			v := frontier.Pop()
+		for {
+			v, ok := frontier.Pop()
+			if !ok {
+				break
+			}
 			for dy := int64(-1); dy <= 1; dy++ {
 				for dx := int64(-1); dx <= 1; dx++ {
 					if dy == 0 && dx == 0 {

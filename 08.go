@@ -71,7 +71,7 @@ func (e *ssdEntry) determineOutput() int {
 			})
 		}
 	}
-	perm := candidates.Pop()
+	perm, _ := candidates.Pop()
 	var result int
 	digit := 1000
 	for _, s := range e.out {
