@@ -43,3 +43,11 @@ func SliceMax[E constraints.Ordered](x []E) E {
 	}
 	return max
 }
+
+func SliceReduce[S ~[]E, E, R any](s S, initial R, fn func(R, E) R) R {
+	r := initial
+	for _, e := range s {
+		r = fn(r, e)
+	}
+	return r
+}

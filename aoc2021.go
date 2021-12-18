@@ -199,6 +199,15 @@ func (ctx *problemContext) int64s() []int64 {
 	return ns
 }
 
+func scanSlice[E any](ctx *problemContext, parse func(string) E) []E {
+	var vs []E
+	scanner := ctx.scanner()
+	for scanner.scan() {
+		vs = append(vs, parse(scanner.text()))
+	}
+	return vs
+}
+
 type scanner struct {
 	s *bufio.Scanner
 }
@@ -238,6 +247,20 @@ func abs[T number](n T) T {
 		return -n
 	}
 	return n
+}
+
+func min[T constraints.Ordered](n0, n1 T) T {
+	if n0 < n1 {
+		return n0
+	}
+	return n1
+}
+
+func max[T constraints.Ordered](n0, n1 T) T {
+	if n0 > n1 {
+		return n0
+	}
+	return n1
 }
 
 type vec2 struct {
