@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 func init() {
@@ -11,262 +11,132 @@ func init() {
 }
 
 func problem18(ctx *problemContext) {
-	var nums []sfNum
-	scanner := ctx.scanner()
-	for scanner.scan() {
-		num, rem := parseSFNum(scanner.text())
-		if rem != "" {
-			panic("extra")
-		}
-		nums = append(nums, num)
-	}
+	nums := scanSlice(ctx, parseSFNum)
 	ctx.reportLoad()
 
-	var sum sfNum
-	for _, num := range nums {
-		if sum == nil {
-			sum = num
-		} else {
-			sum = addSFNums(sum, num)
-		}
-	}
-	// fmt.Println(sum)
-
+	sum := SliceReduce(nums, nil, addSFNums)
 	ctx.reportPart1(sum.mag())
 
-	var max int64
-	for i, num0 := range nums {
-		for j, num1 := range nums {
-			if i == j {
-				continue
-			}
-			mag := addSFNums(num0, num1).mag()
-			if mag > max {
-				max = mag
+	var best int64
+	for i, n0 := range nums {
+		for j, n1 := range nums {
+			if i != j {
+				best = max(best, addSFNums(n0, n1).mag())
 			}
 		}
 	}
-	ctx.reportPart2(max)
+	ctx.reportPart2(best)
 }
 
-type sfNum interface {
-	setAsLeftChild(sfNum)
-	setAsRightChild(sfNum)
-	setSibling(sfNum)
+type sfNum []any // list of tokens: rune ('[', ',', ']') or int64
 
-	String() string
-	explode(int) bool
-	split() bool
-	bubbleUp(v int64, left bool)
-	bubbleDown(v int64, left bool)
-	mag() int64
-	clone() sfNum
-}
-
-type sfNode struct {
-	parent  sfNum
-	sibling sfNum
-	isLeft  bool // left or right of parent
-}
-
-func (n *sfNode) setAsLeftChild(p sfNum) {
-	n.parent = p
-	n.isLeft = true
-}
-
-func (n *sfNode) setAsRightChild(p sfNum) {
-	n.parent = p
-	n.isLeft = false
-}
-
-func (n *sfNode) setSibling(sibling sfNum) {
-	n.sibling = sibling
-}
-
-type sfLit struct {
-	sfNode
-	v int64
-}
-
-type sfPair struct {
-	sfNode
-	left  sfNum
-	right sfNum
-}
-
-func parseSFNum(s string) (num sfNum, rem string) {
-	if s[0] != '[' {
-		panic("bad")
+func parseSFNum(s string) sfNum {
+	var num sfNum
+	for len(s) > 0 {
+		i := strings.IndexFunc(s, func(r rune) bool { return r < '0' || r > '9' })
+		if i == 0 {
+			num = append(num, rune(s[i]))
+			s = s[1:]
+		} else {
+			num = append(num, parseInt(s[:i], 10, 64))
+			s = s[i:]
+		}
 	}
-	s = s[1:]
-	n := new(sfPair)
-	if s[0] == '[' {
-		n.left, s = parseSFNum(s)
-	} else {
-		var v int64
-		v, s = parseIntForward(s)
-		n.left = &sfLit{v: v}
-	}
-	if s[0] != ',' {
-		panic("bad")
-	}
-	s = s[1:]
-	if s[0] == '[' {
-		n.right, s = parseSFNum(s)
-	} else {
-		var v int64
-		v, s = parseIntForward(s)
-		n.right = &sfLit{v: v}
-	}
-	n.fixChildPointers()
-	if s[0] != ']' {
-		panic("bad")
-	}
-	s = s[1:]
-	return n, s
+	return num
 }
 
-func parseIntForward(s string) (int64, string) {
-	i := strings.IndexFunc(s, func(r rune) bool { return r < '0' || r > '9' })
-	return parseInt(s[:i], 10, 64), s[i:]
-}
-
-func (n *sfLit) String() string {
-	return strconv.FormatInt(n.v, 10)
-}
-
-func (n *sfPair) String() string {
-	return fmt.Sprintf("[%s,%s]", n.left, n.right)
+func collectSFNum(vs ...any) sfNum {
+	return SliceReduce(vs, sfNum(nil), func(n sfNum, v any) sfNum {
+		if n1, ok := v.(sfNum); ok {
+			return append(n, n1...)
+		}
+		return append(n, v)
+	})
 }
 
 func addSFNums(n0, n1 sfNum) sfNum {
-	n0 = n0.clone()
-	n1 = n1.clone()
-	n := &sfPair{
-		left:  n0,
-		right: n1,
+	if n0 == nil {
+		return n1
 	}
-	n.fixChildPointers()
-	// fmt.Println("after addition:", n)
+	n := collectSFNum('[', n0, ',', n1, ']')
 
-	// Reduce
-
-	for {
-		if n.explode(0) {
-			// fmt.Println("after explode:", n)
-			continue
-		}
-		if n.split() {
-			// fmt.Println("after split:", n)
-			continue
-		}
-		return n
+reduce:
+	var ok bool
+	if n, ok = n.explode(); ok {
+		goto reduce
 	}
+	if n, ok = n.split(); ok {
+		goto reduce
+	}
+	return n
 }
 
-func (n *sfLit) explode(int) bool { return false }
-
-func (n *sfPair) explode(depth int) bool {
-	if depth > 4 {
-		panic("unexpected depth")
-	}
-	if depth == 4 {
-		n.bubbleUp(n.left.(*sfLit).v, true)
-		n.bubbleUp(n.right.(*sfLit).v, false)
-		lit := &sfLit{
-			sfNode: n.sfNode,
-			v:      0,
+func (n sfNum) explode() (sfNum, bool) {
+	var depth int
+	idx := slices.IndexFunc(n, func(t any) bool {
+		switch t {
+		case '[':
+			if depth == 4 {
+				return true
+			}
+			depth++
+		case ']':
+			depth--
 		}
-		parent := lit.parent.(*sfPair)
-		if lit.isLeft {
-			parent.left = lit
-		} else {
-			parent.right = lit
-		}
-		lit.sibling.setSibling(lit)
-		return true
-	}
-	if n.left.explode(depth + 1) {
-		return true
-	}
-	if n.right.explode(depth + 1) {
-		return true
-	}
-	return false
-}
-
-func (n *sfLit) bubbleUp(int64, bool) { panic("unexpected") }
-
-func (n *sfLit) bubbleDown(v int64, _ bool) { n.v += v }
-
-func (n *sfPair) bubbleUp(v int64, left bool) {
-	if n.parent == nil {
-		return
-	}
-	if left != n.isLeft {
-		n.sibling.bubbleDown(v, !left)
-		return
-	}
-	n.parent.bubbleUp(v, left)
-}
-
-func (n *sfPair) bubbleDown(v int64, left bool) {
-	if left {
-		n.left.bubbleDown(v, left)
-	} else {
-		n.right.bubbleDown(v, left)
-	}
-}
-
-func (n *sfLit) split() bool {
-	if n.v < 10 {
 		return false
+	})
+	if idx < 0 {
+		return n, false
 	}
-	pair := &sfPair{
-		sfNode: n.sfNode,
-		left:   &sfLit{v: n.v / 2},
-		right:  &sfLit{v: (n.v + 1) / 2},
+
+	lv, rv := n[idx+1].(int64), n[idx+3].(int64)
+	left, right := n[:idx], n[idx+5:]
+	for i := len(left) - 1; i >= 0; i-- {
+		if v0, ok := left[i].(int64); ok {
+			left[i] = v0 + lv
+			break
+		}
 	}
-	pair.fixChildPointers()
-	parent := pair.parent.(*sfPair)
-	if pair.isLeft {
-		parent.left = pair
-	} else {
-		parent.right = pair
+	for i := 0; i < len(right); i++ {
+		if v0, ok := right[i].(int64); ok {
+			right[i] = v0 + rv
+			break
+		}
 	}
-	return true
+	return collectSFNum(left, int64(0), right), true
 }
 
-func (n *sfPair) split() bool {
-	return n.left.split() || n.right.split()
+func (n sfNum) split() (sfNum, bool) {
+	for i, t := range n {
+		if v, ok := t.(int64); ok && v >= 10 {
+			lv, rv := v/2, (v+1)/2
+			left, right := n[:i], n[i+1:]
+			return collectSFNum(left, '[', lv, ',', rv, ']', right), true
+		}
+	}
+	return n, false
 }
 
-func (n *sfLit) mag() int64 {
-	return n.v
-}
-
-func (n *sfPair) mag() int64 {
-	return 3*n.left.mag() + 2*n.right.mag()
-}
-
-func (n *sfLit) clone() sfNum {
-	n1 := *n
-	n1.parent = nil
-	return &n1
-}
-
-func (n *sfPair) clone() sfNum {
-	n1 := *n
-	n1.parent = nil
-	n1.left = n1.left.clone()
-	n1.right = n1.right.clone()
-	n1.fixChildPointers()
-	return &n1
-}
-
-func (n *sfPair) fixChildPointers() {
-	n.left.setAsLeftChild(n)
-	n.right.setAsRightChild(n)
-	n.left.setSibling(n.right)
-	n.right.setSibling(n.left)
+func (n sfNum) mag() int64 {
+	// The multiplier for each individual value is some combination of 2s
+	// and 3s. Instead of reconstructing the nesting, figure out the
+	// multiplier as we go and add each value directly.
+	var m int64
+	mul := int64(1)
+	for _, t := range n {
+		if v, ok := t.(int64); ok {
+			m += mul * v
+			continue
+		}
+		switch t {
+		case '[':
+			mul *= 3
+		case ',':
+			mul /= 3
+			mul *= 2
+		case ']':
+			mul /= 2
+		}
+	}
+	return m
 }
