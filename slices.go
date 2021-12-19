@@ -44,6 +44,14 @@ func SliceMax[E constraints.Ordered](x []E) E {
 	return max
 }
 
+func SliceMap[S ~[]E1, E1, E2 any](s S, fn func (E1) E2) []E2 {
+	r := make([]E2, len(s))
+	for i, e1 := range s {
+		r[i] = fn(e1)
+	}
+	return r
+}
+
 func SliceReduce[S ~[]E, E, R any](s S, initial R, fn func(R, E) R) R {
 	r := initial
 	for _, e := range s {
