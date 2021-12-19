@@ -339,6 +339,14 @@ func (v vec3) add(v1 vec3) vec3 {
 	}
 }
 
+func (v vec3) sub(v1 vec3) vec3 {
+	return vec3{
+		x: v.x - v1.x,
+		y: v.y - v1.y,
+		z: v.z - v1.z,
+	}
+}
+
 func (v vec3) neighbors() []vec3 {
 	neighbors := make([]vec3, 0, 26)
 	for dx := int64(-1); dx <= 1; dx++ {
@@ -353,6 +361,10 @@ func (v vec3) neighbors() []vec3 {
 		}
 	}
 	return neighbors
+}
+
+func (v vec3) hamming(v1 vec3) int64 {
+	return abs(v1.x - v.x) + abs(v1.y - v.y) + abs(v1.z - v.z)
 }
 
 type vec4 struct {

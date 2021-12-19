@@ -31,6 +31,15 @@ func (s *Set[T]) Add(v ...T) {
 	}
 }
 
+func (s *Set[T]) AddSet(s2 *Set[T]) {
+	if s.m == nil {
+		s.m = make(map[T]struct{})
+	}
+	for k := range s2.m {
+		s.m[k] = struct{}{}
+	}
+}
+
 func (s *Set[T]) Remove(v T) {
 	delete(s.m, v)
 }
@@ -63,6 +72,14 @@ func (s *Set[T]) Pop() (T, bool) {
 	}
 	var t T
 	return t, false
+}
+
+func (s *Set[T]) Slice() []T {
+	var ts []T
+	for k := range s.m {
+		ts = append(ts, k)
+	}
+	return ts
 }
 
 func SetUnion[T comparable](s0, s1 Set[T]) Set[T] {
