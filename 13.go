@@ -80,7 +80,7 @@ func (fd *foldDots) fold(f vec2) {
 
 func (fd *foldDots) print() {
 	var extent vec2
-	fd.dots.Do(func (v vec2) bool {
+	fd.dots.Do(func(v vec2) bool {
 		if v.x > extent.x {
 			extent.x = v.x
 		}

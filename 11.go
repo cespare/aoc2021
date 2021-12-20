@@ -23,7 +23,7 @@ func problem11(ctx *problemContext) {
 			ctx.reportPart1(o.flashes)
 		}
 		if n == 100 {
-			ctx.reportPart2(i+1)
+			ctx.reportPart2(i + 1)
 			break
 		}
 	}
@@ -76,8 +76,8 @@ func (o *octopuses) step() int {
 					if dy == 0 && dx == 0 {
 						continue
 					}
-					y := v.y+dy
-					x := v.x+dx
+					y := v.y + dy
+					x := v.x + dx
 					if y < 0 || y >= 10 {
 						continue
 					}

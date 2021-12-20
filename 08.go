@@ -3,8 +3,8 @@ package main
 import (
 	"strings"
 
-	"golang.org/x/exp/maps"
 	"github.com/cespare/permute"
+	"golang.org/x/exp/maps"
 )
 
 func init() {
@@ -76,7 +76,7 @@ func (e *ssdEntry) determineOutput() int {
 	digit := 1000
 	for _, s := range e.out {
 		i := ssdCombos[s][perm]
-		result += i*digit
+		result += i * digit
 		digit /= 10
 	}
 	return result

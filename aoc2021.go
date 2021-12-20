@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
+	"constraints"
 	"flag"
 	"fmt"
 	"io"
 	"log"
-	"constraints"
 	"os"
 	"runtime/pprof"
 	"strconv"
@@ -364,7 +364,7 @@ func (v vec3) neighbors() []vec3 {
 }
 
 func (v vec3) hamming(v1 vec3) int64 {
-	return abs(v1.x - v.x) + abs(v1.y - v.y) + abs(v1.z - v.z)
+	return abs(v1.x-v.x) + abs(v1.y-v.y) + abs(v1.z-v.z)
 }
 
 type vec4 struct {
