@@ -78,7 +78,7 @@ func problem19(ctx *problemContext) {
 	var best int64
 	for _, s0 := range solved {
 		for _, s1 := range solved {
-			best = max(best, s0.offset.hamming(s1.offset))
+			best = maxim(best, s0.offset.hamming(s1.offset))
 		}
 	}
 	ctx.reportPart2(best)

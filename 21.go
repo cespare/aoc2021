@@ -39,7 +39,7 @@ func problem21(ctx *problemContext) {
 		}
 	}
 
-	ctx.reportPart2(max(diracDice(p1, p2)))
+	ctx.reportPart2(maxim(diracDice(p1, p2)))
 }
 
 type detDice struct {
